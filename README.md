@@ -2,7 +2,7 @@ Here at GitHub, we're no strangers to hosting or sponsoring hackathons. With the
 
 ## The Challenge
 
-You have the entire month of November to create a **web-based** game *loosely* built around one or more of the following themes:
+e entire month of November to create a **web-based** game *loosely* built around one or more of the following themes:
 
 * forking (or forks)
 * branching (or branches)
