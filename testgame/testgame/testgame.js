@@ -21,6 +21,10 @@ testgame.start = function(){
 	var enemies = new Array();
 	var enemyCreateInvertal = 150;
 	
+	// setup background
+	var background = new lime.Sprite().setSize(1024,700).setFill('#000000');
+    layer.appendChild(background);
+	
 	// create the log sprite
 	var log = new lime.Sprite();
 	log.setFill('assets/log.png');
@@ -141,9 +145,11 @@ testgame.start = function(){
 		
 			// destroy the enemy if it out of the bound of the view
 			var x = Math.abs(enemy.getPosition().x);
+			console.log(x);
 			var y = Math.abs(enemy.getPosition().y);
+			console.log(y);
 			
-			if (x > 1024 || y > 768) {
+			if (x > 512 || y > 384) {
 				layer.removeChild(enemy);
 				enemies.splice(i, 1);
 				return;
