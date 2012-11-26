@@ -11,7 +11,6 @@ goog.require('lime.parser.JSON');
 goog.require('lime.ASSETS.player.json');
 goog.require('lime.animation.MoveBy');
 goog.require('lime.animation.RotateBy');
-goog.require('lime.animation.Loop');
 
 // declare variables
 var director;
@@ -26,11 +25,19 @@ var life_label;
 var life_1;
 var life_2;
 var life_3;
+var extra_life_container;
+var extra_life;
 var score_title_label;
 var score_label;
 
+var gameOverScene;
+var gameOverLayer;
+var gameOverText;
+
 var life_count = 4;
 var score = 0;
+var enemy_score_amount = 1;
+var extra_life_score_amount = 5;
 
 var screen_width = 1024;
 var screen_height = 700;
@@ -48,10 +55,17 @@ var push_down = false;
 
 var hit_padding = -90;
 
+var pull_speed = 1;
+
 var enemy_normal_speed = 200;
 var enemy_push_speed = 500;
 var enemy_create_interval = 100;
-var enemy_rotation = 720;
+var enemy_rotation = 360;
+
+var extra_life_container_diameter = 800;
+var extra_life_rotation_speed = 90;
+var extra_life_create_interval = 500;
+var extra_life_create_timer = 0;
 
 // entrypoint
 game.start = function(){
@@ -59,9 +73,25 @@ game.start = function(){
 	director = new lime.Director(document.body,screen_width, screen_height);
 	playerSS = new lime.SpriteSheet('assets/player.png',lime.ASSETS.player.json,lime.parser.JSON);
 	gameScene = new lime.Scene();
-	mainLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2).setRenderer(lime.Renderer.CANVAS);	
+	mainLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);	
 	enemies = new Array();
 	enemy_create_time = enemy_create_interval;
+	extra_life_container = null;
+	extra_life = null;
+	
+	// setup game over scene
+	gameOverScene = new lime.Scene();
+	gameOverLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);
+	
+	background = new lime.Sprite().setFill('assets/background.png');
+    gameOverLayer.appendChild(background);
+	
+	gameOverText = new lime.Label().setText('GAME OVER')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(80);
+    gameOverLayer.appendChild(gameOverText);
+	
+	gameOverScene.appendChild(gameOverLayer);
 	
 	// setup background
 	background = new lime.Sprite().setFill('assets/background.png');
@@ -170,6 +200,62 @@ game.start = function(){
 	);
 	
 	lime.scheduleManager.schedule(function(){
+		console.log('main loop running');
+		
+		// check to see if a new extra life object should be created
+		if (extra_life == null) {
+			if (extra_life_create_timer < extra_life_create_interval) {
+				extra_life_create_timer++;
+			} else {
+				extra_life_container = new lime.Sprite().setSize(extra_life_container_diameter, extra_life_container_diameter);
+				mainLayer.appendChild(extra_life_container);
+	
+				extra_life = new lime.Sprite().setFill('assets/life.png').setPosition(0, (extra_life_container.getSize().height)/2);
+				extra_life_container.appendChild(extra_life);
+				
+				// reset the extra life create timer
+				extra_life_create_timer = 0;
+			}	
+		} else {
+			// spin the life object
+			var rotate = new lime.animation.RotateBy(extra_life_rotation_speed);
+			rotate.setEasing(lime.animation.Easing.LINEAR);
+			extra_life_container.runAction(rotate);
+		
+			// shrink the life object's rotation radius is the player is pulling it
+			if (push_down == true) {
+				extra_life.setPosition(extra_life.getPosition().x, extra_life.getPosition().y - pull_speed);
+			}
+		
+			// if the life object makes contact with the player, destroy it
+			if (goog.math.Box.intersectsWithPadding(player.getBoundingBox(),extra_life.getBoundingBox(), hit_padding)) {
+				mainLayer.removeChild(extra_life_container);
+				extra_life_container = null;
+				extra_life = null;
+				
+				// the player gains a life (if they already aren't at max life)
+				if (life_count < 4) {
+					life_count += 1;
+				}
+				
+				if (life_count > 1) {
+					life_1.setFill('assets/life_full.png');
+				}
+				if (life_count > 2) {
+					life_2.setFill('assets/life_full.png');
+				}
+				if (life_count > 3) {
+					life_3.setFill('assets/life_full.png');
+				}
+				
+				// increase the player's score
+				score += extra_life_score_amount;
+				
+				// update the score label
+				score_label.setText(score);
+			}
+		} 
+		
 		// check to see if a new emery should be created
 		enemy_create_time++;
 		if (enemy_create_time > enemy_create_interval) {
@@ -194,11 +280,6 @@ game.start = function(){
 				mainLayer.appendChild(new_enemy);
 			}
 			
-			// rotate the enemy
-			var spin = new lime.animation.Loop(new lime.animation.RotateBy(enemy_rotation));
-			spin.setEasing(lime.animation.Easing.LINEAR);
-			new_enemy.runAction(spin);
-			
 			// push enemy to enemies array
 			enemies.push(new_enemy);
 		}
@@ -216,7 +297,9 @@ game.start = function(){
 				life_count -= 1;
 				if (life_count == 0) {
 					// GAME OVER
-					return;
+					director.replaceScene(gameOverScene);
+					//director.setPaused(true);
+					break;
 				} else if (life_count == 3) {
 					life_3.setFill('assets/life_empty.png');
 				} else if (life_count == 2) {
@@ -236,8 +319,7 @@ game.start = function(){
 				enemies.splice(i, 1);
 				
 				// increase the player's score
-				score += 1;
-				//console.log(score);
+				score += enemy_score_amount;
 				
 				// update the score label
 				score_label.setText(score);
@@ -269,8 +351,13 @@ game.start = function(){
 			// make the enemy movement linear
 			move.setEasing(lime.animation.Easing.LINEAR);
 			enemy.runAction(move);
+			
+			// spin the enemy
+			var spin = new lime.animation.RotateBy(enemy_rotation);
+			spin.setEasing(lime.animation.Easing.LINEAR);
+			enemy.runAction(spin);
 		}
-	});
+	}, director);
 	
 	// make the game scene active
 	gameScene.appendChild(mainLayer);
