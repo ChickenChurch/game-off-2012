@@ -150,7 +150,6 @@ KeyboardJS.on('space',
 KeyboardJS.on('enter', 
 	function(){
 		// restart the game if it is on the game over scene
-		console.log('enter pressed!');
 		console.log(game.director.getCurrentScene());
 		if (game.director.getCurrentScene() == gameOverScene) {
 			console.log('restart the game!');
