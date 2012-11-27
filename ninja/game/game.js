@@ -13,7 +13,6 @@ goog.require('lime.animation.MoveBy');
 goog.require('lime.animation.RotateBy');
 
 // declare variables
-var director;
 var player;
 var playerSS;
 var gameScene;
@@ -55,12 +54,12 @@ var push_down = false;
 
 var hit_padding = -90;
 
-var pull_speed = 1;
+var pull_speed = 5;
 
-var enemy_normal_speed = 200;
+var enemy_normal_speed = 500;
 var enemy_push_speed = 500;
 var enemy_create_interval = 100;
-var enemy_rotation = 360;
+var enemy_rotation = 720;
 
 var extra_life_container_diameter = 800;
 var extra_life_rotation_speed = 90;
@@ -70,7 +69,7 @@ var extra_life_create_timer = 0;
 // entrypoint
 game.start = function(){
 	// initialize variables
-	director = new lime.Director(document.body,screen_width, screen_height);
+	game.director = new lime.Director(document.body,screen_width, screen_height);
 	playerSS = new lime.SpriteSheet('assets/player.png',lime.ASSETS.player.json,lime.parser.JSON);
 	gameScene = new lime.Scene();
 	mainLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);	
@@ -88,7 +87,8 @@ game.start = function(){
 	
 	gameOverText = new lime.Label().setText('GAME OVER')
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
-		.setFontSize(80);
+		.setFontSize(80)
+		.setSize(500, 150);
     gameOverLayer.appendChild(gameOverText);
 	
 	gameOverScene.appendChild(gameOverLayer);
@@ -98,7 +98,7 @@ game.start = function(){
     mainLayer.appendChild(background);
 	
 	// setup the character sprite
-	player = new lime.Sprite().setPosition(0,50);
+	player = new lime.Sprite().setPosition(10,50);
 	player.setFill(playerSS.getFrame(player_normal));
 	mainLayer.appendChild(player);
 	
@@ -199,9 +199,7 @@ game.start = function(){
 		}
 	);
 	
-	lime.scheduleManager.schedule(function(){
-		console.log('main loop running');
-		
+	var runGame = function(){
 		// check to see if a new extra life object should be created
 		if (extra_life == null) {
 			if (extra_life_create_timer < extra_life_create_interval) {
@@ -297,8 +295,8 @@ game.start = function(){
 				life_count -= 1;
 				if (life_count == 0) {
 					// GAME OVER
-					director.replaceScene(gameOverScene);
-					//director.setPaused(true);
+					game.director.replaceScene(gameOverScene);
+					lime.scheduleManager.unschedule(runGame);
 					break;
 				} else if (life_count == 3) {
 					life_3.setFill('assets/life_empty.png');
@@ -357,11 +355,13 @@ game.start = function(){
 			spin.setEasing(lime.animation.Easing.LINEAR);
 			enemy.runAction(spin);
 		}
-	}, director);
+	};
+	
+	lime.scheduleManager.schedule(runGame);
 	
 	// make the game scene active
 	gameScene.appendChild(mainLayer);
-	director.replaceScene(gameScene);
+	game.director.replaceScene(gameScene);
 }
 
 
