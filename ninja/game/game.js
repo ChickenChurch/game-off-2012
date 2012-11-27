@@ -28,6 +28,8 @@ var extra_life_container;
 var extra_life;
 var score_title_label;
 var score_label;
+var final_score_label;
+var play_again_label;
 
 var gameOverScene;
 var gameOverLayer;
@@ -60,6 +62,8 @@ var enemy_start_speed = 300;
 var enemy_push_speed = 500;
 var enemy_create_interval = 100;
 var enemy_rotation = 720;
+var enemy_kill_mod = 10;
+var enemy_speed_increase = 50;
 var enemy_kill_count = 0;
 var enemy_speed = 0;
 
@@ -142,24 +146,61 @@ KeyboardJS.on('space',
 );
 
 // ENTER - restart the game
-/*
+
 KeyboardJS.on('enter', 
 	function(){
-		// pause the game
-		game.pause();
-	}
-);
-*/
+		// restart the game if it is on the game over scene
+		console.log('enter pressed!');
+		console.log(game.director.getCurrentScene());
+		if (game.director.getCurrentScene() == gameOverScene) {
+			console.log('restart the game!');
+		}
+	});
+
 
 game.pause = function(){
 	lime.scheduleManager.unschedule(game.run);
 };
 
 game.over = function(){
-	console.log('game over!');
+	// setup game over scene
+	gameOverScene = new lime.Scene();
+	gameOverLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);
+	
+	background = new lime.Sprite().setFill('assets/background.png');
+    gameOverLayer.appendChild(background);
+	
+	gameOverText = new lime.Label().setText('GAME OVER')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(80)
+		.setSize(500, 150);
+    gameOverLayer.appendChild(gameOverText);
+	
+	final_score_label = new lime.Label().setText('FINAL SCORE: ' + score)
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(40)
+		.setSize(500, 150)
+		.setPosition(0, 100);
+    gameOverLayer.appendChild(final_score_label);
+    
+    play_again_label = new lime.Label().setText('PRESS ENTER TO PLAY AGAIN')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(30)
+		.setSize(500, 150)
+		.setPosition(0, 350);
+    gameOverLayer.appendChild(play_again_label);
+	
+	gameOverScene.appendChild(gameOverLayer);
+	
 	game.director.replaceScene(gameOverScene);
 	lime.scheduleManager.unschedule(game.run);
 }
+
+/*
+game.restart = function(){
+
+}
+*/
 
 game.run = function(){
 	// check to see if a new extra life object should be created
@@ -286,9 +327,9 @@ game.run = function(){
 			enemy_kill_count++;
 			
 			// every time the player kills a certain number of enemies, update the enemy speed
-			if (enemy_kill_count % 5 == 0) {
+			if (enemy_kill_count % enemy_kill_mod == 0) {
 				console.log('increase enemy speed!');
-				enemy_speed += 50;
+				enemy_speed += enemy_speed_increase;
 			}
 				
 			return;
@@ -341,21 +382,6 @@ game.start = function(){
 	enemy_create_time = enemy_create_interval;
 	extra_life_container = null;
 	extra_life = null;
-	
-	// setup game over scene
-	gameOverScene = new lime.Scene();
-	gameOverLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);
-	
-	background = new lime.Sprite().setFill('assets/background.png');
-    gameOverLayer.appendChild(background);
-	
-	gameOverText = new lime.Label().setText('GAME OVER')
-		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
-		.setFontSize(80)
-		.setSize(500, 150);
-    gameOverLayer.appendChild(gameOverText);
-	
-	gameOverScene.appendChild(gameOverLayer);
 	
 	// setup background
 	background = new lime.Sprite().setFill('assets/background.png');
