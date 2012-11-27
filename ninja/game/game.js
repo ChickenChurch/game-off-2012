@@ -37,6 +37,9 @@ var gameOverScene;
 var gameOverLayer;
 var gameOverText;
 
+var highScoreScene;
+var highScoreLayer;
+
 var life_count = 4;
 var score = 0;
 var enemy_score_amount = 1;
@@ -62,12 +65,14 @@ var pull_speed = 5;
 
 var enemy_start_speed = 300;
 var enemy_push_speed = 500;
-var enemy_create_interval = 100;
+var enemy_start_create_interval = 100;
 var enemy_rotation = 720;
-var enemy_kill_mod = 10;
-var enemy_speed_increase = 50;
+var enemy_change_mod = 10;
+var enemy_speed_increase = 25;
+var enemy_create_decrease = 10;
 var enemy_kill_count = 0;
 var enemy_speed = 0;
+var enemy_create_interval = 0;
 
 var extra_life_container_diameter = 800;
 var extra_life_rotation_speed = 90;
@@ -237,7 +242,8 @@ game.over = function(){
 	gameOverText = new lime.Label().setText('GAME OVER')
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(80)
-		.setSize(500, 150);
+		.setSize(500, 150)
+		.setPosition(0, 0);
     gameOverLayer.appendChild(gameOverText);
 	
 	final_score_label = new lime.Label().setText('FINAL SCORE: ' + score)
@@ -251,7 +257,615 @@ game.over = function(){
 	
 	game.director.replaceScene(gameOverScene);
 	lime.scheduleManager.unschedule(game.run);
-}
+};
+
+/*
+game.highScore = function() {
+	// setup high score scene
+	console.log('high score scene!');
+	
+	highScoreScene = new lime.Scene();
+	highScoreLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);
+	
+	background = new lime.Sprite().setFill('game/assets/background.png');
+    highScoreLayer.appendChild(background);
+	
+	var high_score_label = new lime.Label().setText('NEW HIGH SCORE!')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(80)
+		.setSize(900, 150)
+		.setPosition(0, -(screen_height/2 - 80));
+    highScoreLayer.appendChild(high_score_label);
+    
+    var enter_name_label = new lime.Label().setText('PLEASE ENTER YOUR INITIALS')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(30)
+		.setSize(800, 150)
+		.setPosition(0, -(screen_height/2 - 190));
+    highScoreLayer.appendChild(enter_name_label);
+    
+    // add blank initials
+    var initial_1_entered = false;
+    var initial_2_entered = false;
+    var initial_3_entered = false;
+    
+    var initial_1 = new lime.Label().setText('_')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(70)
+		.setSize(500, 150)
+		.setPosition(-80, -(screen_height/2 - 260));
+    highScoreLayer.appendChild(initial_1);
+	
+	var initial_2 = new lime.Label().setText('_')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(70)
+		.setSize(500, 150)
+		.setPosition(0, -(screen_height/2 - 260));
+    highScoreLayer.appendChild(initial_2);
+    
+    var initial_3 = new lime.Label().setText('_')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(70)
+		.setSize(500, 150)
+		.setPosition(80, -(screen_height/2 - 260));
+    highScoreLayer.appendChild(initial_3);
+    
+    // add letters
+    var A = new lime.Label().setText('A')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*1)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(A); 
+	
+	goog.events.listen(A,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('A');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('A');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('A');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var B = new lime.Label().setText('B')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*2)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(B);
+	
+	goog.events.listen(B,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('B');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('B');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('B');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var C = new lime.Label().setText('C')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*3)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(C);
+    
+    goog.events.listen(C,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('C');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('C');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('C');
+    		initial_3_entered = true;
+    	}
+    });
+    
+    var D = new lime.Label().setText('D')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*4)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(D);
+	
+	goog.events.listen(D,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('D');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('D');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('D');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var E = new lime.Label().setText('E')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*5)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(E);
+	
+	goog.events.listen(E,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('E');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('E');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('E');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var F = new lime.Label().setText('F')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*6)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(F);
+	
+	goog.events.listen(F,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('F');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('F');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('F');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var G = new lime.Label().setText('G')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*7)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(G);
+	
+	goog.events.listen(G,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('G');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('G');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('G');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var H = new lime.Label().setText('H')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*8)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(H);
+	
+	goog.events.listen(H,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('H');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('H');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('H');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var I = new lime.Label().setText('I')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*9)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(I);
+	
+	goog.events.listen(I,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('I');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('I');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('I');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var J = new lime.Label().setText('J')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*10)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(J);
+	
+	goog.events.listen(J,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('J');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('J');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('J');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var K = new lime.Label().setText('K')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*11)), -(screen_height/2 - 350));
+    highScoreLayer.appendChild(K);
+	
+	goog.events.listen(K,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('K');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('K');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('K');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var L = new lime.Label().setText('L')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*1)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(L); 
+	
+	goog.events.listen(L,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('L');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('L');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('L');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var M = new lime.Label().setText('M')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*2)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(M);
+	
+	goog.events.listen(M,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('M');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('M');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('M');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var N = new lime.Label().setText('N')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*3)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(N);
+    
+    goog.events.listen(N,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('N');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('N');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('N');
+    		initial_3_entered = true;
+    	}
+    });
+    
+    var O = new lime.Label().setText('O')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*4)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(O);
+	
+	goog.events.listen(O,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('O');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('O');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('O');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var P = new lime.Label().setText('P')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*5)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(P);
+	
+	goog.events.listen(P,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('P');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('P');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('P');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var Q = new lime.Label().setText('Q')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*6)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(Q);
+	
+	goog.events.listen(Q,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('Q');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('Q');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('Q');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var R = new lime.Label().setText('R')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*7)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(R);
+	
+	goog.events.listen(R,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('R');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('R');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('R');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var S = new lime.Label().setText('S')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*8)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(S);
+	
+	goog.events.listen(S,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('S');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('S');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('S');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var T = new lime.Label().setText('T')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*9)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(T);
+	
+	goog.events.listen(T,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('T');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('T');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('T');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var U = new lime.Label().setText('U')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*10)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(U);
+	
+	goog.events.listen(U,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('U');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('U');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('U');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var V = new lime.Label().setText('V')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*11)), -(screen_height/2 - 450));
+    highScoreLayer.appendChild(V);
+	
+	goog.events.listen(V,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('V');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('V');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('V');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var W = new lime.Label().setText('W')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*1)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(W); 
+	
+	goog.events.listen(W,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('W');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('W');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('W');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var X = new lime.Label().setText('X')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*2)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(X);
+	
+	goog.events.listen(X,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('X');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('X');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('X');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	var Y = new lime.Label().setText('Y')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*3)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(Y);
+    
+    goog.events.listen(Y,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('Y');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('Y');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('Y');
+    		initial_3_entered = true;
+    	}
+    });
+    
+    var Z = new lime.Label().setText('Z')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(60, 60)
+		.setPosition(-(screen_width/2 - (80*4)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(Z);
+	
+	goog.events.listen(Z,['mousedown','touchstart'],function(e){
+    	if (initial_1_entered == false) {
+    		initial_1.setText('Z');
+    		initial_1_entered = true;
+    	} else if (initial_2_entered == false) {
+    		initial_2.setText('Z');
+    		initial_2_entered = true;
+    	} else if (initial_3_entered == false) {
+    		initial_3.setText('Z');
+    		initial_3_entered = true;
+    	}
+    });
+	
+	 var clearButton = new lime.Label().setText('CLEAR')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(200, 60)
+		.setPosition(-(screen_width/2 - (80*6)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(clearButton);
+	
+	goog.events.listen(clearButton,['mousedown','touchstart'],function(e){
+    	// clear the high score name
+    	initial_1.setText('_');
+    	initial_1_entered = false;
+    	initial_2.setText('_');
+    	initial_2_entered = false;
+    	initial_3.setText('_');
+    	initial_3_entered = false;
+    });
+	
+	var enterButton = new lime.Label().setText('ENTER')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(50)
+		.setSize(200, 60)
+		.setPosition(-(screen_width/2 - (80*9)), -(screen_height/2 - 550));
+    highScoreLayer.appendChild(enterButton);
+	
+	goog.events.listen(enterButton,['mousedown','touchstart'],function(e){
+    	// load game over screen
+    	game.over();
+    });
+	
+	highScoreScene.appendChild(highScoreLayer);
+	
+	game.director.replaceScene(highScoreScene);
+	lime.scheduleManager.unschedule(game.run);
+};
+*/
 
 /*
 game.restart = function(){
@@ -383,10 +997,14 @@ game.run = function(){
 			// update the enemy kill count
 			enemy_kill_count++;
 			
-			// every time the player kills a certain number of enemies, update the enemy speed
-			if (enemy_kill_count % enemy_kill_mod == 0) {
-				console.log('increase enemy speed!');
+			// every time the player kills a certain number of enemies, update the enemy speed and spawn rate
+			if (enemy_kill_count % enemy_change_mod == 0) {
+				
 				enemy_speed += enemy_speed_increase;
+				enemy_create_interval -= enemy_create_decrease;
+				if (enemy_create_interval <= 10) {
+					enemy_create_interval = 10;
+				}
 			}
 				
 			return;
@@ -426,6 +1044,7 @@ game.run = function(){
 
 game.setup = function(){
 	enemy_speed = enemy_start_speed;
+	enemy_create_interval = enemy_start_create_interval;
 	enemy_kill_count = 0;
 }
 
@@ -488,7 +1107,7 @@ game.start = function(){
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(40)
 		.setAnchorPoint(1,1)
-		.setPosition((screen_width/2 - 25), -(screen_height/2 - 110));
+		.setPosition((screen_width/2 - 25), -(screen_height/2 - 115));
     mainLayer.appendChild(score_label);
 	
 	// make the game scene active
