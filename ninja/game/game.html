@@ -4,10 +4,25 @@
 <head>
 	<title>Force Ninja</title>
 	<script type="text/javascript" src="../closure/closure/goog/base.js"></script>
-	<script type="text/javascript" src="keyboard.js"></script>
-	<script type="text/javascript" src="game.js"></script>
+	<script type="text/javascript" src="game/keyboard.js"></script>
+	<script type="text/javascript" src="game/game.js"></script>
+	<style>
+    	#stage {
+        	max-width: 1024px;
+        	height: 700px;
+        	width: 100%;
+        	margin: auto;
+        	position: absolute !important;
+        	top: 0;
+        	right: 0;
+        	bottom: 0;
+        	left: 0;
+        }
+    </style>
 </head>
 
-<body onload="game.start()"></body>
+<body bgcolor="#000000" onload="game.start()">
+<div id="stage"></div>
+</body>
 
 </html>

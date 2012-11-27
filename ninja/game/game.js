@@ -14,6 +14,9 @@ goog.require('lime.animation.RotateBy');
 
 // declare variables
 var player;
+var left_touch_zone;
+var right_touch_zone;
+var up_touch_zone;
 var playerSS;
 var gameScene;
 var mainLayer;
@@ -29,7 +32,6 @@ var extra_life;
 var score_title_label;
 var score_label;
 var final_score_label;
-var play_again_label;
 
 var gameOverScene;
 var gameOverLayer;
@@ -77,14 +79,14 @@ var extra_life_create_timer = 0;
  * Keyboard Controls
  *
  */
-
+/*
 // A - push left
 
 KeyboardJS.on('a', 
 	function(){
-		if (push_left == false) {
+		player.setFill(playerSS.getFrame(player_left));	
+		if (push_left == false) {// && KeyboardJS.activeKeys().length == 1) {
 			push_left = true;
-			player.setFill(playerSS.getFrame(player_left));	
 		}
 	}, 
 	function(){
@@ -99,9 +101,9 @@ KeyboardJS.on('a',
 
 KeyboardJS.on('d', 
 	function(){
-		if (push_right == false) {
+		player.setFill(playerSS.getFrame(player_right));
+		if (push_right == false) {// && KeyboardJS.activeKeys().length == 1) {
 			push_right = true;
-			player.setFill(playerSS.getFrame(player_right));
 		}
 	}, 
 	function(){
@@ -115,9 +117,9 @@ KeyboardJS.on('d',
 // W - push up
 KeyboardJS.on('w', 
 	function(){
-		if (push_up == false) {
-			push_up = true;
-			player.setFill(playerSS.getFrame(player_up));	
+		player.setFill(playerSS.getFrame(player_up));
+		if (push_up == false) {// && KeyboardJS.activeKeys().length == 1) {
+			push_up = true;	
 		}
 	}, 
 	function(){
@@ -132,9 +134,9 @@ KeyboardJS.on('w',
 
 KeyboardJS.on('space', 
 	function(){
-		if (push_down == false) {
-			push_down = true;
-			player.setFill(playerSS.getFrame(player_down));	
+		player.setFill(playerSS.getFrame(player_down));
+		if (push_down == false) {// && KeyboardJS.activeKeys().length == 2) {
+			push_down = true;	
 		}
 	}, 
 	function(){
@@ -156,6 +158,69 @@ KeyboardJS.on('enter',
 		}
 	});
 
+*/
+
+game.loadControls = function() {
+	goog.events.listen(player,['mousedown','touchstart'],function(e){
+    	console.log('touching player!');
+    	push_down = true;
+    	push_left = false;
+    	push_right = false;
+    	push_up = false;
+    	player.setFill(playerSS.getFrame(player_down));
+    	
+    	e.swallow(['mouseup','touchend','touchcancel'],function(){
+        	console.log('not touching player!');
+        	push_down = false;
+        	player.setFill(playerSS.getFrame(player_normal));
+        });
+    });
+    
+    goog.events.listen(left_touch_zone,['mousedown','touchstart'],function(e){
+    	console.log('touching left!');
+    	push_left = true;
+    	push_down = false;
+    	push_right = false;
+    	push_up = false;
+    	player.setFill(playerSS.getFrame(player_left));
+    	
+    	e.swallow(['mouseup','touchend','touchcancel'],function(){
+        	console.log('not touching left!');
+        	push_left = false;
+        	player.setFill(playerSS.getFrame(player_normal));
+        });
+    });
+    
+    goog.events.listen(right_touch_zone,['mousedown','touchstart'],function(e){
+    	console.log('touching right!');
+    	push_right = true;
+    	push_left = false;
+    	push_down = false;
+    	push_up = false;
+    	player.setFill(playerSS.getFrame(player_right));
+    	
+    	e.swallow(['mouseup','touchend','touchcancel'],function(){
+        	console.log('not touching right!');
+        	push_right = false;
+        	player.setFill(playerSS.getFrame(player_normal));
+        });
+    });
+    
+    goog.events.listen(up_touch_zone,['mousedown','touchstart'],function(e){
+    	console.log('touching up!');
+    	push_up = true;
+    	push_left = false;
+    	push_right = false;
+    	push_down = false;
+    	player.setFill(playerSS.getFrame(player_up));
+    	
+    	e.swallow(['mouseup','touchend','touchcancel'],function(){
+    		push_up = false;
+        	console.log('not touching up!');
+        	player.setFill(playerSS.getFrame(player_normal));
+        });
+    });
+}
 
 game.pause = function(){
 	lime.scheduleManager.unschedule(game.run);
@@ -166,7 +231,7 @@ game.over = function(){
 	gameOverScene = new lime.Scene();
 	gameOverLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);
 	
-	background = new lime.Sprite().setFill('assets/background.png');
+	background = new lime.Sprite().setFill('game/assets/background.png');
     gameOverLayer.appendChild(background);
 	
 	gameOverText = new lime.Label().setText('GAME OVER')
@@ -181,13 +246,6 @@ game.over = function(){
 		.setSize(500, 150)
 		.setPosition(0, 100);
     gameOverLayer.appendChild(final_score_label);
-    
-    play_again_label = new lime.Label().setText('PRESS ENTER TO PLAY AGAIN')
-		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
-		.setFontSize(30)
-		.setSize(500, 150)
-		.setPosition(0, 350);
-    gameOverLayer.appendChild(play_again_label);
 	
 	gameOverScene.appendChild(gameOverLayer);
 	
@@ -210,7 +268,7 @@ game.run = function(){
 			extra_life_container = new lime.Sprite().setSize(extra_life_container_diameter, extra_life_container_diameter);
 			mainLayer.appendChild(extra_life_container);
 	
-			extra_life = new lime.Sprite().setFill('assets/life.png').setPosition(0, (extra_life_container.getSize().height)/2);
+			extra_life = new lime.Sprite().setFill('game/assets/life.png').setPosition(0, (extra_life_container.getSize().height)/2);
 			extra_life_container.appendChild(extra_life);
 				
 			// reset the extra life create timer
@@ -239,13 +297,13 @@ game.run = function(){
 			}
 				
 			if (life_count > 1) {
-				life_1.setFill('assets/life_full.png');
+				life_1.setFill('game/assets/life_full.png');
 			}
 			if (life_count > 2) {
-				life_2.setFill('assets/life_full.png');
+				life_2.setFill('game/assets/life_full.png');
 			}
 			if (life_count > 3) {
-				life_3.setFill('assets/life_full.png');
+				life_3.setFill('game/assets/life_full.png');
 			}
 				
 			// increase the player's score
@@ -265,17 +323,17 @@ game.run = function(){
 		var starting_position = parseInt(Math.random() * 3);
 		if (starting_position == 0) { // left
 			var new_enemy = new lime.Sprite().setPosition(screen_width/2,50);
-			new_enemy.setFill('assets/shiruken.png');
+			new_enemy.setFill('game/assets/shiruken.png');
 			new_enemy.direction = 'left';
 			mainLayer.appendChild(new_enemy);
 		} else if (starting_position == 1) { // right
 			new_enemy = new lime.Sprite().setPosition(-(screen_width/2),50);
-			new_enemy.setFill('assets/shiruken.png');
+			new_enemy.setFill('game/assets/shiruken.png');
 			new_enemy.direction = 'right';
 			mainLayer.appendChild(new_enemy);
 		} else if (starting_position == 2) { // down
 			new_enemy = new lime.Sprite().setPosition(0,-(screen_height/2));
-			new_enemy.setFill('assets/shiruken.png');
+			new_enemy.setFill('game/assets/shiruken.png');
 			new_enemy.direction = 'down';
 			mainLayer.appendChild(new_enemy);
 		}
@@ -300,11 +358,11 @@ game.run = function(){
 				game.over();
 				return;
 			} else if (life_count == 3) {
-				life_3.setFill('assets/life_empty.png');
+				life_3.setFill('game/assets/life_empty.png');
 			} else if (life_count == 2) {
-				life_2.setFill('assets/life_empty.png');
+				life_2.setFill('game/assets/life_empty.png');
 			} else {
-				life_1.setFill('assets/life_empty.png');
+				life_1.setFill('game/assets/life_empty.png');
 			}
 		}
 		
@@ -373,8 +431,8 @@ game.setup = function(){
 
 game.start = function(){
 	// initialize variables
-	game.director = new lime.Director(document.body,screen_width, screen_height);
-	playerSS = new lime.SpriteSheet('assets/player.png',lime.ASSETS.player.json,lime.parser.JSON);
+	game.director = new lime.Director(document.getElementById('stage'), screen_width, screen_height);
+	playerSS = new lime.SpriteSheet('game/assets/player.png',lime.ASSETS.player.json,lime.parser.JSON);
 	gameScene = new lime.Scene();
 	mainLayer = new lime.Layer().setPosition(screen_width/2, screen_height/2);	
 	enemies = new Array();
@@ -383,7 +441,7 @@ game.start = function(){
 	extra_life = null;
 	
 	// setup background
-	background = new lime.Sprite().setFill('assets/background.png');
+	background = new lime.Sprite().setFill('game/assets/background.png');
     mainLayer.appendChild(background);
 	
 	// setup the character sprite
@@ -391,37 +449,46 @@ game.start = function(){
 	player.setFill(playerSS.getFrame(player_normal));
 	mainLayer.appendChild(player);
 	
+	left_touch_zone = new lime.Sprite().setPosition(-(screen_width/4 + 75),100).setSize(400,300);//.setFill('#aaa');
+	mainLayer.appendChild(left_touch_zone);
+	
+	right_touch_zone = new lime.Sprite().setPosition((screen_width/4 + 100),100).setSize(400,300);//.setFill('#fff');
+	mainLayer.appendChild(right_touch_zone);
+	
+	up_touch_zone = new lime.Sprite().setPosition(0,-(screen_height/4) - 40).setSize(400,270);//.setFill('#000');
+	mainLayer.appendChild(up_touch_zone);
+	
 	// setup life bar
 	life_label = new lime.Label().setText('LIFE')
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(40)
-		.setPosition(-(screen_width/2 - 70), -(screen_height/2 - 25));
+		.setPosition(-(screen_width/2 - 70), -(screen_height/2 - 45));
     mainLayer.appendChild(life_label);
 	
-	life_1 = new lime.Sprite().setFill('assets/life_full.png')
-		.setPosition(-(screen_width/2 - 40), -(screen_height/2 - 80));
+	life_1 = new lime.Sprite().setFill('game/assets/life_full.png')
+		.setPosition(-(screen_width/2 - 40), -(screen_height/2 - 100));
 	mainLayer.appendChild(life_1);
 	
-	life_2 = new lime.Sprite().setFill('assets/life_full.png')
-		.setPosition(-(screen_width/2 - 90), -(screen_height/2 - 80));
+	life_2 = new lime.Sprite().setFill('game/assets/life_full.png')
+		.setPosition(-(screen_width/2 - 90), -(screen_height/2 - 100));
 	mainLayer.appendChild(life_2);
 	
-	life_3 = new lime.Sprite().setFill('assets/life_full.png')
-		.setPosition(-(screen_width/2 - 140), -(screen_height/2 - 80));
+	life_3 = new lime.Sprite().setFill('game/assets/life_full.png')
+		.setPosition(-(screen_width/2 - 140), -(screen_height/2 - 100));
 	mainLayer.appendChild(life_3);
 	
 	// setup score bar
 	score_title_label = new lime.Label().setText('SCORE')
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(40)
-		.setPosition((screen_width/2 - 90), -(screen_height/2 - 25));
+		.setPosition((screen_width/2 - 90), -(screen_height/2 - 45));
     mainLayer.appendChild(score_title_label);
     
 	score_label = new lime.Label().setText(score)
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(40)
 		.setAnchorPoint(1,1)
-		.setPosition((screen_width/2 - 25), -(screen_height/2 - 95));
+		.setPosition((screen_width/2 - 25), -(screen_height/2 - 110));
     mainLayer.appendChild(score_label);
 	
 	// make the game scene active
@@ -431,9 +498,13 @@ game.start = function(){
 	// setup the game
 	game.setup();
 	
+	// load controls
+	game.loadControls();
+	
 	// run the game
 	lime.scheduleManager.schedule(game.run);
 }
+
 
 
 //this is required for outside access after code is compiled in ADVANCED_COMPILATIONS mode
