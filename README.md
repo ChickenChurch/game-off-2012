@@ -14,8 +14,6 @@ Test your ninja reflexes!
 * Each shiruken pushed offscreen earns you 1 point.
 * Each extra life earns you 5 points, or 20 points if you already have full life.
 
-## Platforms
-
 * The game works with a mouse or touchscreen.
 * Works best in Firefox.
 
