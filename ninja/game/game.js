@@ -1,3 +1,32 @@
+/*
+	
+					FORCE NINJA
+
+Copyright (c) 2012 Shawn Daichendt <shawn.daichendt@gmail.com>
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
 //set main namespace
 goog.provide('game');
 
@@ -13,6 +42,8 @@ goog.require('lime.animation.MoveBy');
 goog.require('lime.animation.RotateBy');
 
 // declare variables
+var server_url = "http://medisite.ca:8000"
+
 var player;
 var left_touch_zone;
 var right_touch_zone;
@@ -39,11 +70,13 @@ var gameOverText;
 
 var highScoreScene;
 var highScoreLayer;
+var initials;
 
 var life_count = 4;
 var score = 0;
 var enemy_score_amount = 1;
-var extra_life_score_amount = 20;
+var extra_life_score_amount = 5;
+var extra_life_full_score_amount = 20;
 
 var screen_width = 1024;
 var screen_height = 700;
@@ -71,7 +104,6 @@ var enemy_change_mod = 10;
 var enemy_speed_increase = 25;
 var enemy_create_decrease = 10;
 var enemy_create_limit = 70;
-var enemy_speed_limit = 900;
 var enemy_kill_count = 0;
 var enemy_speed = 0;
 var enemy_create_interval = 0;
@@ -221,12 +253,6 @@ game.loadControls = function() {
     });
 }
 
-/*
-game.pause = function(){
-	lime.scheduleManager.unschedule(game.run);
-};
-*/
-
 game.over = function(){
 	// setup game over scene
 	gameOverScene = new lime.Scene();
@@ -239,15 +265,58 @@ game.over = function(){
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(80)
 		.setSize(500, 150)
-		.setPosition(0, 0);
+		.setPosition(0, -(screen_height/2 - 100));
     gameOverLayer.appendChild(gameOverText);
 	
 	final_score_label = new lime.Label().setText('FINAL SCORE: ' + score)
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(40)
 		.setSize(500, 150)
-		.setPosition(0, 100);
+		.setPosition(0, -(screen_height/2 - 200));
     gameOverLayer.appendChild(final_score_label);
+	
+	var high_scores_title = new lime.Label().setText('HIGH SCORES')
+		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+		.setFontSize(60)
+		.setSize(500, 150)
+		.setPosition(0, -(screen_height/2 - 310));
+    gameOverLayer.appendChild(high_scores_title);
+    
+    // get high scores
+	var position = 100;
+    var rank = 1;
+	$.getJSON(server_url + '/?initials=' + initials + '&score=' + score, function(data) {
+		console.log(data);
+  		$.each(data, function(key, val) {
+  			console.log(key);
+    		var rank_text = new lime.Label().setText(rank + '.')
+				.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+				.setFontSize(60)
+				.setSize(500, 100)
+				.setAnchorPoint(1,1)
+				.setPosition(30, position);
+    		gameOverLayer.appendChild(rank_text);
+    		
+    		var initials_text = new lime.Label().setText(val.initials)
+				.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+				.setFontSize(60)
+				.setSize(500, 100)
+				.setAnchorPoint(1,1)
+				.setPosition(140, position);
+    		gameOverLayer.appendChild(initials_text);
+    		
+    		var score_text = new lime.Label().setText(val.score)
+				.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
+				.setFontSize(60)
+				.setSize(700, 100)
+				.setAnchorPoint(1,1)
+				.setPosition(550, position);
+    		gameOverLayer.appendChild(score_text);
+    		
+    		position += 120;
+    		rank += 1;
+ 		});
+	});
 	
 	gameOverScene.appendChild(gameOverLayer);
 	
@@ -263,7 +332,6 @@ game.over = function(){
 	}, game.director, 1000);
 };
 
-/*
 game.highScore = function() {
 	// setup high score scene
 	
@@ -273,14 +341,7 @@ game.highScore = function() {
 	background = new lime.Sprite().setFill('game/assets/background.png');
     highScoreLayer.appendChild(background);
 	
-	var high_score_label = new lime.Label().setText('NEW HIGH SCORE!')
-		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
-		.setFontSize(80)
-		.setSize(900, 150)
-		.setPosition(0, -(screen_height/2 - 80));
-    highScoreLayer.appendChild(high_score_label);
-    
-    var enter_name_label = new lime.Label().setText('PLEASE ENTER YOUR INITIALS')
+	var enter_name_label = new lime.Label().setText('PLEASE ENTER YOUR INITIALS')
 		.setFontFamily('Comic Sans MS').setFontColor('#fff').setFontWeight('bold')
 		.setFontSize(30)
 		.setSize(800, 150)
@@ -859,6 +920,9 @@ game.highScore = function() {
     highScoreLayer.appendChild(enterButton);
 	
 	goog.events.listen(enterButton,['mousedown','touchstart'],function(e){
+		// save initials
+		initials = initial_1.getText() + initial_2.getText() + initial_3.getText(); 
+	
     	// load game over screen
     	game.over();
     });
@@ -868,7 +932,6 @@ game.highScore = function() {
 	game.director.replaceScene(highScoreScene);
 	lime.scheduleManager.unschedule(game.run);
 };
-*/
 
 game.restart = function(){
 	// setup the game
@@ -914,8 +977,18 @@ game.run = function(){
 			mainLayer.removeChild(extra_life_container);
 			extra_life_container = null;
 			extra_life = null;
-				
-		// the player gains a life (if they already aren't at max life)
+			
+			// increase the player's score
+			if (life_count == 4) {
+				score += extra_life_full_score_amount;
+			} else {
+				score += extra_life_score_amount;
+			}
+			
+			// update the score label
+			score_label.setText(score);
+			
+			// the player gains a life (if they already aren't at max life)
 			if (life_count < 4) {
 				life_count += 1;
 			}
@@ -929,12 +1002,6 @@ game.run = function(){
 			if (life_count > 3) {
 				life_3.setFill('game/assets/life_full.png');
 			}
-				
-			// increase the player's score
-			score += extra_life_score_amount;
-				
-			// update the score label
-			score_label.setText(score);
 		}
 	} 
 		
@@ -984,8 +1051,8 @@ game.run = function(){
 			// the player loses a life
 			life_count -= 1;
 			if (life_count == 0) {
-				// GAME OVER
-				game.over();
+				// GAME OVER - enter your initials
+				game.highScore();
 				return;
 			} else if (life_count == 3) {
 				life_3.setFill('game/assets/life_empty.png');
@@ -1017,10 +1084,7 @@ game.run = function(){
 			if (enemy_kill_count % enemy_change_mod == 0) {
 				
 				enemy_speed += enemy_speed_increase;
-				if (enemy_speed > enemy_speed_limit) {
-					enemy_speed = enemy_speed_limit;
-				}
-				enemy_speed_limit
+				
 				enemy_create_interval -= enemy_create_decrease;
 				if (enemy_create_interval < enemy_create_limit) {
 					enemy_create_interval = enemy_create_limit;
